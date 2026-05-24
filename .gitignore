@@ -1,0 +1,10 @@
+# Claude Code project config (contains credentials)
+.claude/config.json
+
+# Windows crash dumps
+*.stackdump
+*.dmp
+
+# OS files
+.DS_Store
+Thumbs.db
