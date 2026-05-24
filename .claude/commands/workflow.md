@@ -119,6 +119,98 @@ Skip this step if no High/Critical findings.
 
 ---
 
+## Step 10: Merge Pull Request
+
+Ask the user for final approval before merging:
+
+> **Ready to merge PR #[number] into `<github.defaultMergeTarget>`?**
+> - Yes — merge now
+> - No — leave PR open for manual review
+
+If **Yes**:
+
+### Check pipeline / merge status
+
+```bash
+gh pr view <pr-number> --json mergeable,mergeStateStatus \
+  --repo <github.owner>/<github.repo>
+```
+
+- If `mergeable` is `CONFLICTING`: stop and display:
+  ```
+  Cannot merge: PR has conflicts that must be resolved first.
+  Resolve conflicts on the branch, push, and re-run /workflow or merge manually.
+  ```
+- If `mergeStateStatus` is `BLOCKED` (required checks still running): display:
+  ```
+  CI checks are still running. Waiting for checks to pass before merging...
+  ```
+  Poll every 30 seconds (up to 10 minutes):
+  ```bash
+  gh pr view <pr-number> --json mergeStateStatus \
+    --repo <github.owner>/<github.repo>
+  ```
+  Proceed once `mergeStateStatus` is `CLEAN`. If it times out, ask the user to merge manually.
+
+### Merge
+
+```bash
+gh pr merge <pr-number> \
+  --squash \
+  --delete-branch \
+  --repo <github.owner>/<github.repo>
+```
+
+Use squash merge to keep the target branch history clean. `--delete-branch` removes the remote feature branch after merge.
+
+Display:
+```
+## PR Merged
+
+| Field         | Value                         |
+|---------------|-------------------------------|
+| PR            | #[number] — [title]           |
+| Merged into   | [github.defaultMergeTarget]   |
+| Strategy      | Squash                        |
+| Branch        | deleted after merge           |
+```
+
+---
+
+## Step 11: Switch to Default Branch and Pull
+
+After merge, update the local default branch:
+
+```bash
+git checkout <github.defaultMergeTarget>
+git pull
+```
+
+Then delete the local feature branch if it still exists:
+
+```bash
+git branch -d <feature-branch-name>
+```
+
+If the local branch cannot be deleted (e.g., unmerged warning due to squash), force delete it — the code is already in the remote via squash merge:
+
+```bash
+git branch -D <feature-branch-name>
+```
+
+Display:
+```
+## Local State Updated
+
+| Action                  | Detail                          |
+|-------------------------|---------------------------------|
+| Switched to             | [github.defaultMergeTarget]     |
+| Pulled latest           | ✓                               |
+| Local branch deleted    | [feature-branch-name]           |
+```
+
+---
+
 ## Workflow Summary
 
 After all steps complete:
@@ -137,6 +229,8 @@ After all steps complete:
 | 7. Pull Request         | Done    | PR #[number]                         |
 | 8. Code Review          | Done    | [N] findings ([N] critical/high)     |
 | 9. Fix Findings         | Done    | [N] fixes applied                    |
+| 10. Merge PR            | Done    | Squash merged into [defaultMergeTarget] |
+| 11. Switch & Pull       | Done    | On [defaultMergeTarget], up to date  |
 
 PR URL:    [url]
 Issue URL: https://github.com/<github.owner>/<github.repo>/issues/$ARGUMENTS
@@ -151,3 +245,4 @@ Issue URL: https://github.com/<github.owner>/<github.repo>/issues/$ARGUMENTS
 - If `gh` is not authenticated, prompt: `Run: gh auth login`
 - If there are push conflicts, resolve them before continuing — do not force push
 - If the plan is rejected twice, ask the user to describe what they want directly
+- If merge is blocked by branch protection rules, inform the user and display the PR URL for manual approval
