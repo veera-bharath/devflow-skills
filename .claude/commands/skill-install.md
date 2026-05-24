@@ -124,17 +124,73 @@ If not present, append:
 
 ---
 
-## Step 6: Display Summary
+## Step 6: Configure Claude Code Permission Mode
+
+Read the current global permission mode:
+
+```bash
+cat ~/.claude/settings.json 2>/dev/null
+```
+
+Look for `permissions.defaultMode`. Show the current value (or "not set") and ask the user to choose:
+
+> **Which permission mode should Claude Code use?**
+>
+> | Mode                | Description                                                       |
+> |---------------------|-------------------------------------------------------------------|
+> | `default`           | Prompts before every tool use — safest, most control             |
+> | `acceptEdits`       | Auto-approves file edits; still prompts for shell commands        |
+> | `bypassPermissions` | Skips all prompts — fastest, no interruptions (use with caution) |
+
+Present as a choice. After the user selects:
+
+1. Read `~/.claude/settings.json` with the Read tool (or start with `{}` if it does not exist)
+2. Merge only the permission fields — preserve all other existing settings
+3. Write the updated file using the Edit tool (or Write tool if it did not exist)
+
+```json
+{
+  "permissions": {
+    "defaultMode": "<selected mode>"
+  }
+}
+```
+
+If the user selects `bypassPermissions`, also ask:
+
+> **Suppress the dangerous-mode warning on startup?**
+> - Yes — skip the warning prompt (smoother startup)
+> - No — keep the warning (safer reminder)
+
+If yes, add `"skipDangerousModePermissionPrompt": true` to the settings.
+
+Display confirmation:
+
+```
+## Permission Mode Set
+
+| Setting                | Value           |
+|------------------------|-----------------|
+| Default Mode           | [selected mode] |
+| Skip Warning Prompt    | [yes / no]      |
+
+Saved to ~/.claude/settings.json (global — applies to all projects)
+```
+
+---
+
+## Step 7: Display Summary
 
 ```
 ## Installation Complete
 
-| Item              | Status             |
-|-------------------|--------------------|
-| Commands copied   | ✓ (13 commands)    |
-| Config template   | ✓                  |
-| devSkillsSource   | ✓ set to [path]    |
-| .gitignore        | ✓ updated          |
+| Item                | Status                  |
+|---------------------|-------------------------|
+| Commands copied     | ✓ (13 commands)         |
+| Config template     | ✓                       |
+| devSkillsSource     | ✓ set to [path]         |
+| .gitignore          | ✓ updated               |
+| Permission mode     | ✓ [selected mode]       |
 
 ## Next Steps
 
