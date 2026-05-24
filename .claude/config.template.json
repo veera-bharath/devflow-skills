@@ -1,0 +1,14 @@
+{
+  "github": {
+    "owner": "",
+    "repo": "",
+    "defaultBranch": "main",
+    "defaultMergeTarget": "main"
+  },
+  "git": {
+    "ticketPattern": "#\\d+"
+  },
+  "devSkillsSource": {
+    "path": ""
+  }
+}
