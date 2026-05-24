@@ -52,10 +52,10 @@ If there are uncommitted changes, warn the user and ask if they want to run `/gi
 
 ---
 
-## Step 3: Load Issue for PR Title
+## Step 3: Load Issue for PR Title and Link
 
 ```bash
-gh issue view <issue-number> --json number,title \
+gh issue view <issue-number> --json number,title,url \
   --repo <github.owner>/<github.repo>
 ```
 
@@ -63,6 +63,8 @@ PR title format:
 ```
 #<issue-number> <issue-title>
 ```
+
+Store the issue `url` for use in the PR description.
 
 ---
 
@@ -84,6 +86,10 @@ git push -u origin <branch-name>
 Analyze `git log <github.defaultMergeTarget>..HEAD --oneline` and `git diff --stat` to write:
 
 ```markdown
+## Issue
+
+[#<issue-number> — <issue-title>](<issue-url>)
+
 ## Summary
 - <bullet 1>
 - <bullet 2>
@@ -99,6 +105,8 @@ Analyze `git log <github.defaultMergeTarget>..HEAD --oneline` and `git diff --st
 
 Closes #<issue-number>
 ```
+
+The `## Issue` section renders as a clickable hyperlink in the GitHub PR UI. The `Closes #<issue-number>` line at the bottom tells GitHub to automatically close the issue when the PR is merged.
 
 ---
 
