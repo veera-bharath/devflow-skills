@@ -12,28 +12,155 @@ Run the setup wizard to generate `.claude/config.json` for the current project.
 
 ## Prerequisites Check
 
-Verify the required tools are installed and authenticated:
+### 1. Check Git
 
 ```bash
-# Check gh CLI
-gh --version
-
-# Check gh auth status
-gh auth status
-
-# Check git
 git --version
 ```
 
-If `gh` is not installed, stop and display:
+If git is not found, stop and display:
 ```
-GitHub CLI (gh) is required. Install it from: https://cli.github.com
+Git is required but not installed.
+
+Install Git:
+  Windows : https://git-scm.com/download/win
+  macOS   : brew install git   (or xcode-select --install)
+  Ubuntu  : sudo apt install git
+  Fedora  : sudo dnf install git
+
+After installing, restart your terminal and run /skill-setup again.
 ```
 
-If not authenticated, stop and display:
+### 2. Check GitHub CLI
+
+```bash
+gh --version
 ```
-Not authenticated with GitHub. Run: gh auth login
+
+If `gh` is not found, detect the OS and display tailored install instructions:
+
+**Detect OS:**
+```bash
+uname -s 2>/dev/null || echo "Windows"
 ```
+
+**Windows** (output is `Windows` or contains `MINGW`/`CYGWIN`):
+```
+GitHub CLI (gh) is not installed.
+
+Install options (choose one):
+
+  Option A — winget (recommended, built into Windows 10/11):
+    winget install --id GitHub.cli
+
+  Option B — Scoop:
+    scoop install gh
+
+  Option C — Chocolatey:
+    choco install gh
+
+  Option D — Manual installer:
+    Download from: https://github.com/cli/cli/releases/latest
+    Run the .msi installer, then restart your terminal.
+
+After installing, restart your terminal and run /skill-setup again.
+```
+
+**macOS** (output is `Darwin`):
+```
+GitHub CLI (gh) is not installed.
+
+Install options (choose one):
+
+  Option A — Homebrew (recommended):
+    brew install gh
+
+  Option B — MacPorts:
+    sudo port install gh
+
+  Option C — Manual installer:
+    Download from: https://github.com/cli/cli/releases/latest
+
+After installing, run /skill-setup again.
+```
+
+**Linux** (output is `Linux`):
+
+Detect distro:
+```bash
+cat /etc/os-release 2>/dev/null | grep ^ID=
+```
+
+Display the matching instructions:
+```
+GitHub CLI (gh) is not installed.
+
+Install for your distro:
+
+  Debian/Ubuntu:
+    sudo apt update && sudo apt install gh
+
+  Fedora/RHEL:
+    sudo dnf install gh
+
+  Arch:
+    sudo pacman -S github-cli
+
+  Other / Manual:
+    https://github.com/cli/cli/releases/latest
+
+After installing, run /skill-setup again.
+```
+
+Stop here if `gh` is not installed — do not proceed until it is.
+
+### 3. Check GitHub Authentication
+
+```bash
+gh auth status
+```
+
+**If authenticated**, continue to Step 1.
+
+**If not authenticated**, guide the user through login:
+
+```
+GitHub CLI is installed but you are not logged in.
+
+Starting GitHub authentication...
+```
+
+Then run the interactive login:
+```bash
+gh auth login
+```
+
+The login flow will:
+1. Ask: GitHub.com or GitHub Enterprise → select **GitHub.com**
+2. Ask: preferred protocol → select **HTTPS** (or SSH if preferred)
+3. Ask: authenticate with browser or token → select **Login with a web browser**
+4. Display a one-time code → user copies it
+5. Open browser → user pastes the code and approves
+
+After the command completes, verify it succeeded:
+```bash
+gh auth status
+```
+
+If still not authenticated after the attempt, display:
+```
+Authentication did not complete. Please try manually:
+  gh auth login
+
+Or authenticate with a Personal Access Token:
+  1. Go to: https://github.com/settings/tokens/new
+  2. Select scopes: repo, read:org, read:user
+  3. Copy the token
+  4. Run: gh auth login --with-token
+     and paste your token when prompted.
+```
+
+Stop if authentication cannot be confirmed. Do not proceed with config until `gh auth status` returns a logged-in user.
 
 ---
 
